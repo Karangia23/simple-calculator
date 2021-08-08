@@ -1,6 +1,6 @@
 const display_element = document.querySelector("#display")
 let display_value = display_element.value
-let realValue = undefined
+let realValue = display_value
 let isDecimal = false
 let isOperator = false
 
@@ -42,35 +42,40 @@ function operate(a,b,oper){
 
 function display(num){
     if(display_element.value == "0" && num != 0){
-        break
+        
     }
     display_element.setAttribute("value", num.toString())
 }
 
 function main(){
     for(let i=0; i<10; i++){
-        let button = document.querySelector("#" + i + "_calc")
-        button.addEventListener("click") = function(){
+        let button = document.querySelector("#calc_" + i.toString())
+        button.addEventListener("click", function(){
             if(realValue.charAt(realValue.length -1) == '+' || realValue.charAt(realValue.length -1) == '-' || realValue.charAt(realValue.length -1) == '*' || realValue.charAt(realValue.length -1) == '/'){
                 clear_display()
                 display_value = button.textContent
                 realValue += button.textContent
-                display_element.setAttribute("value", display_value)
+                display_element.value = display_value
+                //display_element.setAttribute("value", display_value)
             }
-            else if(display_element.value == '0' && button.textContent == '0'){
+            else if(display_element.value == '0' && button.textContent == '0' && isDecimal == false){
 
             }
             else if(isDecimal == false && display_element.value == '0'){
                 display_value = button.textContent
-                realValue
-                display_element.setAttribute("value", display_value)
+                realValue = button.textContent
+                display_element.value = display_value
+            }
+            else if(realValue == 'NaN'){
+
             }
             else
+            {
                 display_value += button.textContent
                 realValue += button.textContent
-                display_element.setAttribute("value", display_value)
-
-        }
+                display_element.value = display_value
+            }         
+        })
     }
 
     let equal_button = document.querySelector("#equal_calc")
@@ -102,7 +107,14 @@ function main(){
     })
 
     equal_button.addEventListener("click", function(){
-        checkIfEquationFull(realValue)
+        let lastEquationDigit = realValue.charAt(realValue.length-1)
+        if(isOperator != false && isNumeric(lastEquationDigit))
+        {
+            realValue = makeMath(realValue)
+            isOperator = false
+            display_value = realValue
+            display_element.value = display_value
+        }
     })
 
     dot_button.addEventListener("click", function(){
@@ -111,20 +123,24 @@ function main(){
 }
 
 function makeMath(equation){
-    let a = undefined
-    let oper = undefined
-    let b = undefined
-    for(let i=0; i<equation.length;i++)
-    {
-        if(equation.charAt(i) == '+' || equation.charAt(i) == '-' || equation.charAt(i) == '*' || equation.charAt(i) == '/'){
-            oper = equation.charAt(i)
-            a = equation.substring(0, i)
-            b = equation.substring(i+1)
-            break
+    let a = 0
+    let oper = ''
+    let b = 0
+    if(realValue != NaN){
+        let lastEquationDigit = equation.charAt(equation.length-1)
+        for(let i=0; i<equation.length;i++)
+        {
+            if((equation.charAt(i) == '+' || equation.charAt(i) == '-' || equation.charAt(i) == '*' || equation.charAt(i) == '/')&& isNumeric(lastEquationDigit)){
+                oper = equation.charAt(i)
+                a = Number(equation.substring(0, i))
+                b = Number(equation.substring(i+1))
+                equation = operate(a,b,oper)
+                return String(equation)
+                break
+            }
         }
+        
     }
-    finalValue = operate(a,b,operator)
-    display(finalValue)
 }
 
 function clear(){
@@ -133,18 +149,22 @@ function clear(){
     display_element.value = display_value
     realValue = display_value
     isDecimal = false
+    isOperator = false
 }
 
 function addOperator(button_operator){
+    let lastEquationDigit = realValue.charAt(realValue.length-1)
     //change operator if already pressed
     if(realValue.charAt(realValue.length-1) == '+' || realValue.charAt(realValue.length-1) == '-' ||  realValue.charAt(realValue.length-1) == '*' || realValue.charAt(realValue.length-1) == '/'){
         realValue.replace(/.$/,button_operator.textContent)
         isDecimal = false
     }
 
-    else if(isOperator==true && realValue.charAt(realValue.length-1).isInteger){
-        checkIfEquationFull(realValue)
+    else if(isOperator==true && isNumeric(lastEquationDigit)){
         clear_display()
+        realValue = makeMath(realValue)
+        display_value = realValue
+        display_element.value = display_value
         isDecimal = false
 
     }
@@ -152,7 +172,9 @@ function addOperator(button_operator){
 
     }
     else{
-        realValue += operator
+        realValue += button_operator.textContent
+        isOperator = true
+        isDecimal = false
     }
 }
 
@@ -161,35 +183,37 @@ function clear_display(){
     display_element.value = display_value
 }
 
-function checkIfEquationFull(equation){
-    for(let i=0;i<equation.length; i++){
-        if(equation.charAt(i) == '+' || equation.charAt(i) == '-' || equation.charAt(i) == '*' || equation.charAt(i) == '/'){
-            if(equation.charAt(i-1).isInteger && equation.charAt(i+1).isInteger){
-                makeMath(equation)
-            }
-        }
-    }
-}
 
-function makeDecimal(realValue){
+function makeDecimal(){
     if(realValue.charAt(realValue.length-1) == '+' || realValue.charAt(realValue.length-1) == '-' || realValue.charAt(realValue.length-1) == '*' || realValue.charAt(realValue.length-1) == '/'){
         realValue += '0.'
         clear_display()
+        isDecimal = true
         display_value = '0.'
         display_element.value = display_value
     }
 
+    else if(isDecimal == true){
+    
+    }
+
     else if(realValue == ''){
         realValue += '0.'
+        isDecimal = true
         clear_display()
         display_value = '0.'
-        display_element.setAttribute('value', display_value)
+        display_element.value = display_value
     }
     else{
-        realValue += '.'
+        realValue = realValue + "."
         display_value += '.'
-        display_element.setAttribute('value', display_value)
+        isDecimal = true
+        display_element.value = display_value
     }
 }
+
+function isNumeric(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+  }
 
 main()
